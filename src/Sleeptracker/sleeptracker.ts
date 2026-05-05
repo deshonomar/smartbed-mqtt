@@ -88,7 +88,10 @@ export const sleeptracker = async (mqtt: IMQTTConnection) => {
             .setState(sleepSensor)
             .setOnline();
         }
-        if (sleepSensor.self) {
+        // Fallback: if API stops returning sleepSensor.self for any sensor, treat first as self.
+        // Without this, bed.controllers stays empty and no entities are published.
+        const isSelf = sleepSensor.self || (!sleepSensors.some((s) => s.self) && sleepSensor === sleepSensors[0]);
+        if (isSelf) {
           bed.sensors[side] = { ...sleepSensor, user };
           sleepSensorInfo.setState(sleepSensor);
           const capability =
